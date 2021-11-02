@@ -123,25 +123,14 @@ class LBC:
         
         self.converter = Converter(offset=6.0, scale=[1.5,1.5]).to(self.device) ## TODO/ dunno
         
-    def train(self, rots, lbls, spds, locs, cmds, rgbs, sems, train='image'):
+            
+    def train_bev(self, rots, lbls, spds, locs, cmds):
 
         lbls = lbls.float().to(self.device)
-        rgbs = rgbs.permute(0,3,1,2).float().to(self.device)
-        sems = sems.to(self.device)
         rots = rots.float().to(self.device)
         locs = locs.float().to(self.device)
         spds = spds.float().to(self.device)
         cmds = cmds.long().to(self.device)
-        
-        if train == 'bev':
-            return self.train_bev(rots, lbls, spds, locs, cmds)
-        elif train == 'cam':
-            return self.train_rgb(rots, lbls, spds, locs, cmds, rgbs,sems)
-        
-        else:
-            raise NotImplementedError
-            
-    def train_bev(self, rots, lbls, spds, locs, cmds):
 
         pred_locs = self.bev_model(lbls, spds).view(-1,self.num_cmds,self.T,2)
 
@@ -163,6 +152,14 @@ class LBC:
 
 
     def train_rgb(self, rots, lbls, spds, locs, cmds, rgbs, sems):
+
+        lbls = lbls.float().to(self.device)
+        rgbs = rgbs.permute(0,3,1,2).float().to(self.device)
+        sems = sems.to(self.device)
+        rots = rots.float().to(self.device)
+        locs = locs.float().to(self.device)
+        spds = spds.float().to(self.device)
+        cmds = cmds.long().to(self.device)
         
         with torch.no_grad():
             tgt_bev_locs = (self.bev_model(lbls, spds).view(-1,self.num_cmds,self.T,2)+1) * self.crop_size/2
@@ -190,14 +187,11 @@ class LBC:
         # single_branch_losses = losses.mean(dim=[2,3]).gather(1, cmds[:,None]).mean(dim=1)
         
         # loc_loss = torch.where(cmds==3, single_branch_losses, multip_branch_losses).mean()
-        
-        #print('pred sems: ', pred_sems.size())  #torch.Size([64, 7, 56, 120])
-        #print('sems: ', sems.size())    #torch.Size([64, 3, 224, 480])
-        #seg_loss = self.CE_loss(temp, sems)
+
         temp = F.interpolate(pred_sems.float(),scale_factor=4)
         seg_loss = F.cross_entropy(temp, sems)
         loss = loc_loss + self.seg_weight * seg_loss
-        #loss = loc_loss
+
 
         self.rgb_optim.zero_grad()
         loss.backward()
