@@ -1,10 +1,12 @@
-# Network
 import torch
+from torch import optim
+import numpy as np
 from torch._C import dtype
 import torch.nn as nn
+import torch.nn.functional as F
+
 from resnet import resnet18, resnet34
 from spatial_softmax import SpatialSoftmax
-import torch.nn.functional as F
 from _numpy import to_numpy
 from normalization import Normalize
 from segmentation import SegmentationHead
@@ -68,7 +70,6 @@ class RGBPointModel(PointModel):
         spd_embds = self.spd_encoder(spd[:,None]) #torch.Size([8, 1, 1, 128])
         spd_embds = spd_embds.permute (0,3,2,1) #torch.Size([8, 128, 1, 1])
         spd_embds = spd_embds.repeat(1, 1, self.kh,self.kw) #torch.Size([8, 128, 2, 2])
-        #print('spd_embds size :', spd_embds.size())
         points = self.upconv(torch.cat([inputs, spd_embds], 1))
         
         points[...,1] = (points[...,1] + 1)/2
@@ -82,10 +83,6 @@ class RGBPointModel(PointModel):
 
 
 
-from torch import optim
-import numpy as np
-import cupy as cp
-#from utils import _numpy
 
 
 class LBC:

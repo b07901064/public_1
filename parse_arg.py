@@ -34,4 +34,6 @@ mode: cam
 batch size can use 56 (about the limit)
 
 specify camera index under dataloader.SingleDataset 'self.cam_idx = 0/1/2' 
+specify number of plans under dataloader.SingleDataset 'self.num_plans = 6'
+specify amount of data to be loaded under dataloader line ~184
 '''

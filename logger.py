@@ -35,8 +35,8 @@ class Logger:
                 #print(loc[2])
                 gx, gy = loc[t].astype(int)
                 px, py = pred_loc[t].astype(int)
-                cv2.circle(bev, (gx, gy), 3, (0,255,0), 1) #Green
-                cv2.circle(bev, (px, py), 4, (255,0,255), 1) #Pink
+                cv2.circle(bev, (gx, gy), 2, (0,255,0), 1) #Green
+                cv2.circle(bev, (px, py), 2, (255,0,255), 1) #Pink
         
         
         info.update({'it': it, 'visuals': [wandb.Image(bev) for bev in bevs]})

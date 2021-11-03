@@ -122,8 +122,10 @@ class SingleDataset(Dataset):
 
         lbl = np.stack((lbl0, lbl1, lbl2, lbl3, lbl4, lbl5, lbl6, lbl7, lbl8, lbl9, lbl10, lbl11), 0)
         if self.transform is not None:
-            lbl = self.transform(lbl)        
-        lbl = lbl.permute(0,2,1)
+            lbl = self.transform(lbl)
+        # print('lbl size', lbl.size())      # ([96, 12, 96])  
+        lbl = lbl.permute(2,0,1)
+
 
 
         # Rotate BEV
@@ -183,11 +185,11 @@ def loaddata(args):
 
         flag += 1
         # around 6757 in total
-        if flag > 3000:
+        if flag > 2000:
           break
     print('finished. Flag= ',flag)
 
     multiple_datasets = data.ConcatDataset(list_of_datasets)
-    train_loader = DataLoader(multiple_datasets, batch_size= args.batch_size, shuffle= False)
+    train_loader = DataLoader(multiple_datasets, batch_size= args.batch_size, shuffle= True)
 
     return train_loader
