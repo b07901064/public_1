@@ -47,7 +47,7 @@ def main(args):
                 info = lbc.train_rgb(rots, lbls, spds, dlocs,  cmds, rgbs, sems)
                 global_it += 1
 
-                if global_it % args.num_iters_per_log == 0:
+                if global_it % args.num_iters_per_log == 2:
                     print('>> Loc loss: ',info['loc_loss'])
                     print('>> Seg loss: ',info['seg_loss'])
                     logger.log_rgb(global_it, rgbs, lbls, info)

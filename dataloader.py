@@ -11,6 +11,7 @@ import re
 from torchvision import transforms
 from os.path import join
 from augmenter import augment
+from visulization import filter_sem
 from visulization import PIXELS_PER_METER
 
 
@@ -40,7 +41,8 @@ class SingleDataset(Dataset):
         self.crop_top = 8
         self.crop_bottom = 8
         self.margin = (96- self.crop_size) // 2
-
+        
+        '''
         self.mapping = {
             (220, 20, 60): 1,
             (153, 153, 153): 2,
@@ -49,6 +51,18 @@ class SingleDataset(Dataset):
             (244, 35, 232): 5,
             (0, 0, 142): 6,
             (220, 220, 0): 7,
+            # Exception : 0
+        }
+        '''
+
+        self.mapping = {
+            (220, 20, 60): 4,
+            (153, 153, 153): 5,
+            (157, 234, 50): 6,
+            (128, 64, 128): 7,
+            (244, 35, 232): 8,
+            (0, 0, 142): 10,
+            (220, 220, 0): 18,
             # Exception : 0
         }
 
@@ -82,15 +96,36 @@ class SingleDataset(Dataset):
     
         if self.mode == 'cam':
             rgb = cv2.imread(self.direc + '/rgbs/wide_{}_{}'.format(self.cam_idx, format(idx, '05d') + '.jpg' ))
-            sem = cv2.imread(self.direc + '/rgbs/wide_sem_{}_{}'.format(self.cam_idx, format(idx, '05d') + '.png' ))
+
+            sem = cv2.imread(self.direc + '/rgbs/wide_sem_{}_{}'.format(self.cam_idx, format(idx, '05d') + '.png' ))    #gray scale # don't learn
+            if self.transform is not None:
+                sem = self.transform(sem)
+                sem = sem.squeeze()
+                sem = sem * 255
+            sem = sem.permute(1,2,0)
+
             sem = self.map2label(sem)
+            sem = filter_sem(sem, labels=self.seg_channels)
             
             # Augment rgb
             rgb = rgb.reshape(240,480,3)
             rgb = self.augmenter(images=rgb[None,...,::-1])[0] #!not sure
 
+            #sem = filter_sem(sem, labels = self.seg_channels)
+            #sem = int(sem)
+            #sem = sem.reshape(240.480)
             sem = sem[self.crop_top:-self.crop_bottom]
             rgb = rgb[self.crop_top:-self.crop_bottom]
+
+            # if self.transform is not None:
+            #     sem = self.transform(sem)
+            #     sem = sem.squeeze()
+
+            # if self.transform is not None:
+            #     rgb = self.transform(rgb)
+            
+            # rgb = rgb.permute(1,2,0)
+
 
 
         lbl0 = self.__class__.access('lbl_00', self.datei, idx)
@@ -120,11 +155,29 @@ class SingleDataset(Dataset):
         lbl10 = cv2.imread(self.direc + str(lbl10), 0)
         lbl11 = cv2.imread(self.direc + str(lbl11), 0)
 
-        lbl = np.stack((lbl0, lbl1, lbl2, lbl3, lbl4, lbl5, lbl6, lbl7, lbl8, lbl9, lbl10, lbl11), 0)
+        # lbl = np.stack((lbl0, lbl1, lbl2, lbl3, lbl4, lbl5, lbl6, lbl7, lbl8, lbl9, lbl10, lbl11), 0)
+        # if self.transform is not None:
+        #     lbl = self.transform(lbl) 
+        # lbl = lbl.permute(2,0,1)
         if self.transform is not None:
-            lbl = self.transform(lbl)
-        # print('lbl size', lbl.size())      # ([96, 12, 96])  
-        lbl = lbl.permute(2,0,1)
+            lbl0 = self.transform(lbl0)
+            lbl1 = self.transform(lbl1)
+            lbl2 = self.transform(lbl2)
+            lbl3 = self.transform(lbl3)
+            lbl4 = self.transform(lbl4)
+            lbl5 = self.transform(lbl5)
+            lbl6 = self.transform(lbl6)
+            lbl7 = self.transform(lbl7)
+            lbl8 = self.transform(lbl8)
+            lbl9 = self.transform(lbl9)
+            lbl10 = self.transform(lbl10)
+            lbl11 = self.transform(lbl11)
+        
+        lbl = torch.cat( (lbl0, lbl1, lbl2, lbl3, lbl4, lbl5, lbl6, lbl7, lbl8, lbl9, lbl10, lbl11), 0)
+        lbl = lbl.permute(1,2,0)
+
+            
+
 
 
 
@@ -185,7 +238,7 @@ def loaddata(args):
 
         flag += 1
         # around 6757 in total
-        if flag > 2000:
+        if flag > args.amountdata:
           break
     print('finished. Flag= ',flag)
 

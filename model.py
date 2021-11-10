@@ -14,7 +14,7 @@ from converter import Converter
 
 
 class PointModel(nn.Module):
-    def __init__(self, backbone, pretrained=False, height=96, width=96, input_channel=3, output_channel=20, num_labels=8):
+    def __init__(self, backbone, pretrained=False, height=96, width=96, input_channel=3, output_channel=20, num_labels=7):
         super().__init__()
         
         #print('input channel:', input_channel)
@@ -152,7 +152,9 @@ class LBC:
 
         lbls = lbls.float().to(self.device)
         rgbs = rgbs.permute(0,3,1,2).float().to(self.device)
-        sems = sems.to(self.device)
+        #print(type(sems))
+        #sems = sems.to(self.device)
+        sems = sems.long().to(self.device)
         rots = rots.float().to(self.device)
         locs = locs.float().to(self.device)
         spds = spds.float().to(self.device)
@@ -202,7 +204,8 @@ class LBC:
             tgt_bev_locs= to_numpy(tgt_bev_locs),
             pred_rgb_locs= to_numpy(pred_rgb_locs),
             pred_bev_locs= to_numpy(pred_bev_locs),
-            tgt_sems= np.uint8(to_numpy(sems)),
+            #tgt_sems= np.uint8(to_numpy(sems)),
+            tgt_sems= to_numpy(sems),
             pred_sems= to_numpy(pred_sems.argmax(1)),
         )
 

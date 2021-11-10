@@ -22,7 +22,7 @@ COLORS = [
         (0,255,128),
         (0,128,255),
         ]
- 
+
 SEM_COLORS = {
     4 : (220, 20, 60),
     5 : (153, 153, 153),
@@ -32,6 +32,17 @@ SEM_COLORS = {
     10: (0, 0, 142),
     18: (220, 220, 0),
 }
+''' 
+SEM_COLORS = {
+    1 : (220, 20, 60),
+    2 : (153, 153, 153),
+    3 : (157, 234, 50),
+    4 : (128, 64, 128),
+    5 : (244, 35, 232),
+    6: (0, 0, 142),
+    7: (220, 220, 0),
+}
+'''
 
 def visualize_big(rgb, yaw, control, speed, cmd=None, lbl=None, sem=None, text_args=(cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255,255,255), 1)):
     """
@@ -144,6 +155,7 @@ def visualize_birdview_big(birdview, num_channels=3):
     return canvas
 
 def visualize_semantic(sem, labels=[4,6,7,10,18]):
+    # def visualize_semantic(sem, labels=[1,3,4,6,7]):
     canvas = np.zeros(sem.shape+(3,), dtype=np.uint8)
     for label in labels:
         canvas[sem==label] = SEM_COLORS[label]
@@ -151,6 +163,7 @@ def visualize_semantic(sem, labels=[4,6,7,10,18]):
     return canvas
 
 def visualize_semantic_processed(sem, labels=[4,6,7,10,18]):
+    # def visualize_semantic_processed(sem, labels=[1,3,4,5,6]):
     canvas = np.zeros(sem.shape+(3,), dtype=np.uint8)
     for i,label in enumerate(labels):
         canvas[sem==i+1] = SEM_COLORS[label]
